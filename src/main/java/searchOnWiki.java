@@ -1,3 +1,4 @@
+import java.io.IOException;
 import java.net.URI;//класс для отправки url
 import java.util.Scanner;//класс для считывания данных пользователя
 import java.net.http.HttpClient;//класс для создания HTTP клиента и отправки запросов
@@ -5,7 +6,7 @@ import java.net.http.HttpRequest;//класс для построения HTTP �
 import java.net.http.HttpResponse;//класс для представления HTTP ответа от сервера
 import java.time.Duration;//класс для работы с временными промежутками
 import java.net.URLEncoder;//класс для кодирования строк в URL-формат
-import java.nio.charset.StandardCharsets;//Класс с стандартными кодировками
+import java.nio.charset.StandardCharsets;//Класс со стандартными кодировками
 import java.util.List;//интерфейс для работы со списками (упорядоченными коллекциями)
 import java.awt.Desktop;//класс для просмотра в браузере в данном случае
 import com.google.gson.Gson;//библиотека для преобразования JSON в Java-объекты и обратно
@@ -18,7 +19,7 @@ public class searchOnWiki {
     private static final Gson gson = new Gson();
 
     public static String fetchJSONfromURL(String url){
-        try{
+
             // 1. Создаем HTTP клиент
             HttpClient client = HttpClient.newHttpClient();
 
@@ -32,21 +33,26 @@ public class searchOnWiki {
                     .build();
 
             // 3. Отправляем запрос и получаем ответ
-            HttpResponse<String>/*ответ строка*/ response = client.send(
+        HttpResponse<String>/*ответ строка*/ response = null;
+        try {
+            response = client.send(
                     request,//запрос
                     HttpResponse.BodyHandlers.ofString()//преобразовываем тело ответа в строку
             );
+        } catch (IOException e) {
+            System.out.println(e.getMessage());
+        } catch (InterruptedException e) {
+            System.out.println(e.getMessage());
+        }
 
-            // 4. Проверяем статус и обрабатываем ответ
+        // 4. Проверяем статус и обрабатываем ответ
             if (response.statusCode() >= 200 && response.statusCode()<300) {//если успешный код (200-299), то...
                 return response.body();//возвращаем тело ответа
             }
             else {
                 throw new RuntimeException("HTTP ошибка: " + response.statusCode() + " - " + response.body());//обработка исключений
             }
-        } catch(Exception e){
-            throw new RuntimeException("Ошибка при запросе: " + e.getMessage(), e);//обработка исключений
-        }
+
     }
 
     public static void parseAndDisplayResults(String jsonResponse){
@@ -70,7 +76,6 @@ public class searchOnWiki {
         }catch(Exception e) {
             // Выводим ошибку, если что-то пошло не так
             System.out.println("Ошибка: " + e.getMessage());
-
         }
     }
 
